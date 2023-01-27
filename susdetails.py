@@ -86,11 +86,10 @@ class SuspectDetails:
         except:
             pass
 
+    # w zależnosci od daty dodania na liste most wanted
 
-# w zależnosci od daty dodania na liste most wanted
-
-# metoda load all data (Dla każej strony która jest) -> mam dane na dysku w jednym megajsonie ->
-# -> liczenie danych jakościowych
-# rozmieszczeni w czasie (np narodowość - czas)
+    # metoda load all data (Dla każej strony która jest) -> mam dane na dysku w jednym megajsonie ->
+    # -> liczenie danych jakościowych
+    # rozmieszczeni w czasie (np narodowość - czas)
     def show(self):
         self.suspect_details.mainloop()
