@@ -15,12 +15,14 @@ class SuspectsList:
         self.back_button = None
         self.next_button = None
         self.suspects_list = tk.Toplevel()
-        self.suspects_list.title("Suspects List")
+        self.suspects_list.title("FBI Most Wanted - Suspects List")
         self.suspects = suspects
 
         # Pages
         self.index = 0  # add a variable to keep track of the current index
 
+        # Counters - wyskrobywanie jakichkolwiek danych ilościowych
+        self.counter_nationality = 0
 
         self.display_suspects(self.index)
         # self.next_button = tk.Button(self.suspects_list, text="Next", command=self.next_suspects)
@@ -54,13 +56,19 @@ class SuspectsList:
         for widget in self.suspects_list.grid_slaves():
             widget.destroy()
 
-
         for suspect in self.suspects[index:index + 5]:
             number = tk.Label(self.suspects_list, text=str(self.suspects.index(suspect) + 1) + ".")
-            number.grid(row=self.suspects.index(suspect)+1, column=0)
+            number.grid(row=self.suspects.index(suspect) + 1, column=0)
             name_label = tk.Label(self.suspects_list, text=suspect["title"], cursor="hand2")
-            name_label.grid(row=self.suspects.index(suspect)+1, column=1)
+            name_label.grid(row=self.suspects.index(suspect) + 1, column=1)
             name_label.bind("<Button-1>", lambda event, arg=suspect: suspect_details(arg))
+
+            # COUNTERS
+            # Generating some quantitative data
+            if suspect["nationality"] == "Russian":  # TODO: wpisujesz parametr kraju
+                self.counter_nationality += 1
+                print("detected: " + str(self.counter_nationality))
+
             try:
                 image_url = suspect["images"][0]["thumb"]
                 image_data = requests.get(image_url).content
@@ -71,7 +79,7 @@ class SuspectsList:
                 image = ImageTk.PhotoImage(image)
                 image_label = tk.Label(self.suspects_list, image=image)
                 image_label.image = image
-                image_label.grid(row=self.suspects.index(suspect)+1, column=2)
+                image_label.grid(row=self.suspects.index(suspect) + 1, column=2)
             except:
                 pass
 
@@ -83,6 +91,9 @@ class SuspectsList:
         if self.index == 0:
             self.back_button.configure(state=tk.DISABLED)
         self.back_button.grid(row=0, column=0)
+
+        # Reset "for page" counters
+        self.counter_nationality = 0
 
     def next_suspects(self):
         self.index += 5
