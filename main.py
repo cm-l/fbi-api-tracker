@@ -1,20 +1,3 @@
-import requests
-import json
-
-# # Test via console
-# response = requests.get('https://api.fbi.gov/@wanted?pageSize=50&page=4&sort_on=modified&sort_order=desc'
-#                         )
-# data = json.loads(response.content)
-# print(data['total'])
-#
-# for i in range(50):
-#     print(f"Suspect number {i+1}: \n {data['items'][i]['title']}")
-#
-# sus_number = int(input("Get suspect: "))
-#
-# print("\n--------")
-# print(f"This is {data['items'][sus_number-1]['title']}")
-
 import tkinter as tk
 import requests
 import json
@@ -34,25 +17,34 @@ class App:
         self.root.geometry("640x360")
         self.root.title("FBI Most Wanted - Search")
 
+        # Frame management
+        self.frame_search = tk.Frame(self.root)
+        self.frame_search.configure(padx=32, pady=32, relief=tk.RAISED, border=2)
+        self.frame_search.pack(side=tk.TOP)
+
         # Create a variable to store the selected search parameter
         self.parameter = tk.StringVar()
         self.parameter.set("title")
 
         # Create a dropdown menu to allow the user to select the search parameter
-        self.parameter_dropdown = tk.OptionMenu(self.root, self.parameter, "title", "status", "person_classification")
+        self.parameter_dropdown = tk.OptionMenu(self.frame_search, self.parameter, "title", "status", "person_classification")
         self.parameter_dropdown.pack()
 
         # Create an entry widget for the user to enter the search term
-        self.search_term = tk.Entry(self.root)
+        self.search_term = tk.Entry(self.frame_search)
         self.search_term.pack()
 
         # Create a button to initiate the search
-        self.search_button = tk.Button(self.root, text="Search", command=self.search)
+        self.search_button = tk.Button(self.frame_search, text="Search", command=self.search)
         self.search_button.pack()
 
         # Button to create mega json
         self.load_button = tk.Button(self.root, text="Load Data", command=self.load_data)
         self.load_button.pack()
+
+        # Open analysis button
+        self.open_analysis = tk.Button(self.root, text="Open Analysis Panel", command=open_analysis)
+        self.open_analysis.pack()
 
         # Create a listbox to display the search results
         self.results = tk.Listbox(self.root)
@@ -87,8 +79,6 @@ class App:
 
         # Open analysis button
         self.open_analysis = tk.Button(self.root, text="Open Analysis Panel", command=open_analysis)
-        if self.progress['value'] != 100:
-            self.open_analysis.configure(state=tk.DISABLED)
         self.open_analysis.pack()
 
         # Show buttons
