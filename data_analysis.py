@@ -2,12 +2,18 @@ import json
 import tkinter as tk
 from tkinter import filedialog
 
+import matplotlib.pyplot as plt
+from collections import Counter
+
+import numpy as np
+
+
 
 class DataAnalysis:
     def __init__(self):
         self.data_analysis = tk.Toplevel()
-        self.data_analysis.title = "FBI Most Wanted - Data Analysis Panel"
-        self.data_analysis.geometry("720x420")
+        self.data_analysis.title = "FBI Most Wanted - Data Analysis Dashboard"
+        self.data_analysis.geometry("790x420")
 
         # Data
         self.sus_data = None
@@ -48,6 +54,10 @@ class DataAnalysis:
         self.frame_results.configure(padx=12, pady=12)
         self.frame_results.grid(row=1, column=1)
 
+        self.frame_time = tk.Frame(self.framebig_anal)
+        self.frame_time.configure(padx=12, pady=12)
+        self.frame_time.grid(row=2, column=1)
+
         # Data loading - 1
         self.load_dialog = tk.Button(self.frame_load, text="Load Data", command=self.open_file)
         self.load_text = tk.Label(self.frame_load, text="1. Select .JSON file to be used as data:")
@@ -74,15 +84,19 @@ class DataAnalysis:
         self.anal_quick_button = tk.Button(self.frame_analysis, text="Update Preview", command=self.quick_results)
         self.anal_text.grid(row=0, column=2)
         self.anal_quick_button.grid(row=1, column=1)
+        self.anal_time_button = tk.Button(self.frame_analysis, text="Time Analysis", command=self.time_analysis)
+        self.anal_time_button.grid(row=1,column=2)
+        self.anal_timeline_button = tk.Button(self.frame_analysis, text="Line-Graph Time", command=self.time_line)
+        self.anal_timeline_button.grid(row=1,column=3)
 
-        self.anal_graphfreq_button = tk.Button(self.frame_analysis, text="Graph", command=self.quick_results)
+        self.anal_graphfreq_button = tk.Button(self.frame_analysis, text="Graph", command=self.create_bar_graph)
         self.anal_graphfreq_entry = tk.Entry(self.frame_analysis)
         self.anal_graphfreq_text = tk.Label(self.frame_analysis, text="where length is: ")
         self.anal_graphfreq_button.grid(row=2, column=1)
         self.anal_graphfreq_entry.grid(row=2, column=3)
         self.anal_graphfreq_text.grid(row=2, column=2)
 
-        self.anal_piechart_button = tk.Button(self.frame_analysis, text="Pie-chart", command=self.quick_results)
+        self.anal_piechart_button = tk.Button(self.frame_analysis, text="Pie-chart", command=self.create_pie_graph)
         self.anal_piechart_entry = tk.Entry(self.frame_analysis)
         self.anal_piechart_text = tk.Label(self.frame_analysis, text="where area is: ")
         self.anal_piechart_button.grid(row=3, column=1)
@@ -94,6 +108,9 @@ class DataAnalysis:
         # Results - 1
         self.results_text = tk.Label(self.frame_results, text=f"Quick preview of loaded data: \n Update to see overview of current file")
         self.results_text.pack()
+
+        self.time_text = tk.Label(self.frame_time, text=f"Time analysis: \n Launch time analysis to see results")
+        self.time_text.pack()
 
 
 
@@ -128,6 +145,75 @@ class DataAnalysis:
         print("Quick results")
         self.results_text.configure(text=f"Quick preview of loaded data: \nTotal: {self.amount} \n Not Apprehended / Missing: {self.missing} \n Captured / Found: {self.appr} \n Dead: {self.dead} \n Surrendered: {self.conceded} \n Recovered: {self.recovered}")
 
+    def create_bar_graph(self):
+
+        print(self.anal_graphfreq_entry.get())
+        values = [entry[self.anal_graphfreq_entry.get()] for entry in self.sus_data]
+        value_counts = dict(Counter(values))
+
+        # No None
+        value_counts = {k if k is not None else 'Unknown': v for k, v in value_counts.items()}
+
+        keys = list(value_counts.keys())
+        values = list(value_counts.values())
+
+        plt.rcParams["figure.figsize"] = [8, 9]
+        plt.rcParams["figure.autolayout"] = True
+
+        plt.barh(keys, values)
+
+
+        plt.xlabel('Frequency')
+        plt.xticks(rotation=90)
+        plt.ylabel(self.anal_graphfreq_entry.get())
+        plt.show()
+
+    def create_pie_graph(self):
+        values = [entry[self.anal_piechart_entry.get()] for entry in self.sus_data]
+        value_counts = dict(Counter(values))
+
+        # No None
+        value_counts = {k if k is not None else 'Unknown': v for k, v in value_counts.items()}
+
+        keys = list(value_counts.keys())
+        values = list(value_counts.values())
+
+        plt.rcParams["figure.figsize"] = [8, 9]
+        plt.rcParams["figure.autolayout"] = True
+
+        plt.pie(value_counts.values(), labels=value_counts.keys())
+
+        plt.show()
+
+    def time_analysis(self):
+        date_list = []
+        for entry in self.sus_data:
+            if entry["publication"] is None:
+                print("Missing!")
+            else:
+                date_list.append(int((entry["publication"].split("-")[0])))
+        print(date_list)
+        self.time_text.configure(text=f"Time Analysis: \nMedian time of publication: {np.median(date_list)} \n Average time of publication {np.average(date_list)} \n Std. deviation of publication: {np.std(date_list)} \n Variance of publication: {np.var(date_list)}")
+
+    def time_line(self):
+        years = [str(year) for year in range(2010, 2024)]
+        year_count = {year: 0 for year in years}
+        for entry in self.sus_data:
+            if entry["publication"] is None:
+                year = "1900"
+            else:
+                year = entry["publication"].split("-")[0]
+            if year in years:
+                year_count[year] += 1
+
+        plt.rcParams["figure.figsize"] = [9, 6]
+        plt.rcParams["figure.autolayout"] = True
+
+        plt.plot(years, list(year_count.values()))
+        plt.xlabel("Year")
+        plt.ylabel("Number of Entries")
+        plt.title("Number of Entries per Year")
+        plt.show()
 
     def show(self):
         self.data_analysis.mainloop()
